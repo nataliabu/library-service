@@ -8,4 +8,8 @@ type Book struct {
 	IssueYear int32
 	Available bool
 }
+
+type Customer struct {
+	ID   int32
+	Name string
 }

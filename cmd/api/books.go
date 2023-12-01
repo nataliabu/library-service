@@ -91,3 +91,25 @@ func removeBookDB(db *database.DB, ctx context.Context, id *int32) error {
 	}
 	return nil
 }
+
+func borrowBookDB(db *database.DB, ctx context.Context, book *database.Book) error {
+	query := `UPDATE books
+	  SET available = false
+		WHERE id = $1;`
+	_, err := db.Exec(query, book.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}
+
+func returnBookDB(db *database.DB, ctx context.Context, book *database.Book) error {
+	query := `UPDATE books
+	  SET available = true
+		WHERE id = $1;`
+	_, err := db.Exec(query, book.ID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
+}

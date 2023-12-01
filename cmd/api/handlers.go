@@ -109,3 +109,93 @@ func (app *application) removeBook(w http.ResponseWriter, r *http.Request) {
 		app.serverError(w, r, err)
 	}
 }
+
+func (app *application) getCustomers(w http.ResponseWriter, r *http.Request) {
+	responseBody, err := listCustomersDB(app.db, r.Context())
+	if err != nil {
+		app.notFound(w, r)
+	}
+
+	err = response.JSON(w, http.StatusOK, responseBody)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+}
+
+func (app *application) addCustomer(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+	var customer database.Customer
+	err = json.Unmarshal(body, &customer)
+	if err != nil {
+		panic(err)
+	}
+
+	responseBody, err := addCustomerDB(app.db, r.Context(), &customer)
+	if err != nil {
+		app.notFound(w, r)
+	}
+
+	err = response.JSON(w, http.StatusCreated, responseBody)
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+}
+
+func (app *application) borrowBook(w http.ResponseWriter, r *http.Request) {
+	idString := chi.URLParam(r, "id")
+	parsedId, err := strconv.ParseInt(idString, 10, 32)
+	if err != nil {
+		panic(err)
+	}
+	id := int32(parsedId)
+
+	book, err := getBookByIdDB(app.db, r.Context(), &id)
+	if err != nil {
+		app.notFound(w, r)
+	}
+
+	if !book.Available {
+		err = response.JSON(w, http.StatusNotFound, "This book is not available at the moment")
+		if err != nil {
+			app.serverError(w, r, err)
+		}
+	} else {
+		err := borrowBookDB(app.db, r.Context(), book)
+		if err != nil {
+			app.notFound(w, r)
+		}
+
+		err = response.JSON(w, http.StatusOK, "You've borrowed this book!")
+		if err != nil {
+			app.serverError(w, r, err)
+		}
+	}
+}
+
+func (app *application) returnBook(w http.ResponseWriter, r *http.Request) {
+	idString := chi.URLParam(r, "id")
+	parsedId, err := strconv.ParseInt(idString, 10, 32)
+	if err != nil {
+		panic(err)
+	}
+	id := int32(parsedId)
+
+	book, err := getBookByIdDB(app.db, r.Context(), &id)
+	if err != nil {
+		app.notFound(w, r)
+	}
+
+	err = returnBookDB(app.db, r.Context(), book)
+	if err != nil {
+		app.notFound(w, r)
+	}
+
+	err = response.JSON(w, http.StatusOK, "You've returned this book. Thank you!")
+	if err != nil {
+		app.serverError(w, r, err)
+	}
+}

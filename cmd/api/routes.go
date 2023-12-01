@@ -32,5 +32,15 @@ func (app *application) routes() http.Handler {
 	mux.Post("/books", app.addBook)
 
 	mux.Delete("/books/{id}", app.removeBook)
+
+	mux.Get("/customers", app.getCustomers)
+
+	mux.Post("/customers", app.addCustomer)
+
+	// Actions for Customers
+	mux.Patch("/books/borrow/{id}", app.borrowBook)
+
+	mux.Patch("/books/return/{id}", app.returnBook)
+
 	return mux
 }
