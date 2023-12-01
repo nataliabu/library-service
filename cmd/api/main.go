@@ -24,9 +24,13 @@ func main() {
 }
 
 type config struct {
-	baseURL   string
-	httpPort  int
-	basicAuth struct {
+	baseURL        string
+	httpPort       int
+	adminBasicAuth struct {
+		username       string
+		hashedPassword string
+	}
+	customerBasicAuth struct {
 		username       string
 		hashedPassword string
 	}
@@ -47,8 +51,10 @@ func run(logger *slog.Logger) error {
 
 	flag.StringVar(&cfg.baseURL, "base-url", "http://localhost:4444", "base URL for the application")
 	flag.IntVar(&cfg.httpPort, "http-port", 4444, "port to listen on for HTTP requests")
-	flag.StringVar(&cfg.basicAuth.username, "basic-auth-username", "admin", "basic auth username")
-	flag.StringVar(&cfg.basicAuth.hashedPassword, "basic-auth-hashed-password", "$2a$10$jRb2qniNcoCyQM23T59RfeEQUbgdAXfR6S0scynmKfJa5Gj3arGJa", "basic auth password hashed with bcrpyt")
+	flag.StringVar(&cfg.adminBasicAuth.username, "admin-basic-auth-username", "admin", "basic auth username")
+	flag.StringVar(&cfg.adminBasicAuth.hashedPassword, "admin-basic-auth-hashed-password", "$2a$12$BoCjlYAkx02ah/BcZzaQ2edgJxM/hg4qKiXh3ig7FuJkpaFTSxhL2", "basic auth password hashed with bcrpyt")
+	flag.StringVar(&cfg.customerBasicAuth.username, "customer-basic-auth-username", "customer", "basic auth username")
+	flag.StringVar(&cfg.customerBasicAuth.hashedPassword, "customer-basic-auth-hashed-password", "$2a$12$vCQQulqQTOhlanMhxWkMJuEKaXk8dwA6..JHh1iYZrzqHwM0d1mWe", "basic auth password hashed with bcrpyt")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres:postgres@host:5432/db", "postgreSQL DSN")
 
 	showVersion := flag.Bool("version", false, "display version and exit")

@@ -21,7 +21,7 @@ func (app *application) recoverPanic(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) requireBasicAuthentication(next http.Handler) http.Handler {
+func (app *application) adminBasicAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, plaintextPassword, ok := r.BasicAuth()
 		if !ok {
@@ -29,12 +29,39 @@ func (app *application) requireBasicAuthentication(next http.Handler) http.Handl
 			return
 		}
 
-		if app.config.basicAuth.username != username {
+		if app.config.adminBasicAuth.username != username {
 			app.basicAuthenticationRequired(w, r)
 			return
 		}
 
-		err := bcrypt.CompareHashAndPassword([]byte(app.config.basicAuth.hashedPassword), []byte(plaintextPassword))
+		err := bcrypt.CompareHashAndPassword([]byte(app.config.adminBasicAuth.hashedPassword), []byte(plaintextPassword))
+		switch {
+		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
+			app.basicAuthenticationRequired(w, r)
+			return
+		case err != nil:
+			app.serverError(w, r, err)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) customerBasicAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		username, plaintextPassword, ok := r.BasicAuth()
+		if !ok {
+			app.basicAuthenticationRequired(w, r)
+			return
+		}
+
+		if app.config.customerBasicAuth.username != username {
+			app.basicAuthenticationRequired(w, r)
+			return
+		}
+
+		err := bcrypt.CompareHashAndPassword([]byte(app.config.customerBasicAuth.hashedPassword), []byte(plaintextPassword))
 		switch {
 		case errors.Is(err, bcrypt.ErrMismatchedHashAndPassword):
 			app.basicAuthenticationRequired(w, r)

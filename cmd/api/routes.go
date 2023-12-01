@@ -16,12 +16,6 @@ func (app *application) routes() http.Handler {
 
 	mux.Get("/status", app.status)
 
-	mux.Group(func(mux chi.Router) {
-		mux.Use(app.requireBasicAuthentication)
-
-		mux.Get("/basic-auth-protected", app.protected)
-	})
-
 	mux.Get("/books", app.getBooks)
 
 	mux.Get("/books/{isbn}", app.getBookByIsbn)
@@ -29,18 +23,27 @@ func (app *application) routes() http.Handler {
 	mux.Get("/books/{id}", app.getBookById)
 
 	// Actions for Librarians
-	mux.Post("/books", app.addBook)
+	mux.Group(func(mux chi.Router) {
+		mux.Use(app.adminBasicAuthentication)
 
-	mux.Delete("/books/{id}", app.removeBook)
+		mux.Post("/books", app.addBook)
 
-	mux.Get("/customers", app.getCustomers)
+		mux.Delete("/books/{id}", app.removeBook)
 
-	mux.Post("/customers", app.addCustomer)
+		mux.Get("/customers", app.getCustomers)
+
+		mux.Post("/customers", app.addCustomer)
+
+	})
 
 	// Actions for Customers
-	mux.Patch("/books/borrow/{id}", app.borrowBook)
+	mux.Group(func(mux chi.Router) {
+		mux.Use(app.customerBasicAuthentication)
 
-	mux.Patch("/books/return/{id}", app.returnBook)
+		mux.Patch("/books/borrow/{id}", app.borrowBook)
+
+		mux.Patch("/books/return/{id}", app.returnBook)
+	})
 
 	return mux
 }
