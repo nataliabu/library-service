@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+
+  library-service:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - 4444:4444
+    volumes:
+      - .:/app
+    command: go run ./cmd/api/ --db-dsn="postgres:postgres@librarydb:5432/librarydb?sslmode=disable"
+    depends_on:
+      - librarydb
+
+  librarydb:
+    image: postgres:alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=librarydb
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+
+volumes:
+  postgres-db:
