@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 
 	"github.com/nataliabu/library-service/internal/database"
 )
@@ -12,7 +11,7 @@ func listBooksDB(db *database.DB, ctx context.Context) ([]database.Book, error) 
 	query := `SELECT * FROM books;`
 	rows, err := db.Query(query)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -25,7 +24,7 @@ func listBooksDB(db *database.DB, ctx context.Context) ([]database.Book, error) 
 	for rows.Next() {
 		err := rows.Scan(&id, &title, &author, &isbn, &issueYear, &available)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		data = append(data, database.Book{id, title, author, isbn, issueYear, available})
 	}
@@ -42,7 +41,7 @@ func getBookByIsbnDB(db *database.DB, ctx context.Context, isbn *string) (*datab
 	var available bool
 	err := db.QueryRow(query, isbn).Scan(&id, &title, &author, isbn, &issueYear, &available)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	book := database.Book{id, title, author, *isbn, issueYear, available}
 	return &book, nil
@@ -58,7 +57,7 @@ func getBookByIdDB(db *database.DB, ctx context.Context, id *int32) (*database.B
 	var available bool
 	err := db.QueryRow(query, id).Scan(id, &title, &author, &isbn, &issueYear, &available)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	book := database.Book{*id, title, author, isbn, issueYear, available}
 	return &book, nil
@@ -70,7 +69,7 @@ func addBookDB(db *database.DB, ctx context.Context, book *database.Book) (*data
 	var pk int32
 	err := db.QueryRow(query, book.Title, book.Author, book.Isbn, book.IssueYear, true).Scan(&pk)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	newBook := database.Book{
 		ID:        pk,
@@ -87,7 +86,7 @@ func removeBookDB(db *database.DB, ctx context.Context, id *int32) error {
 	query := `DELETE FROM books WHERE id = $1;`
 	_, err := db.Exec(query, id)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	return nil
 }
@@ -98,7 +97,7 @@ func borrowBookDB(db *database.DB, ctx context.Context, book *database.Book) err
 		WHERE id = $1;`
 	_, err := db.Exec(query, book.ID)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	return nil
 }
@@ -109,7 +108,7 @@ func returnBookDB(db *database.DB, ctx context.Context, book *database.Book) err
 		WHERE id = $1;`
 	_, err := db.Exec(query, book.ID)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	return nil
 }

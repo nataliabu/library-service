@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 
 	"github.com/nataliabu/library-service/internal/database"
 )
@@ -11,7 +10,7 @@ func listCustomersDB(db *database.DB, ctx context.Context) ([]database.Customer,
 	data := []database.Customer{}
 	rows, err := db.Query("SELECT * FROM customers")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -20,7 +19,7 @@ func listCustomersDB(db *database.DB, ctx context.Context) ([]database.Customer,
 	for rows.Next() {
 		err := rows.Scan(&id, &name)
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		data = append(data, database.Customer{id, name})
 	}
@@ -33,7 +32,7 @@ func addCustomerDB(db *database.DB, ctx context.Context, customer *database.Cust
 	var pk int32
 	err := db.QueryRow(query, customer.Name).Scan(&pk)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	newCustomer := database.Customer{
 		ID:   pk,
