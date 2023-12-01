@@ -23,7 +23,6 @@ func main() {
 	}
 }
 
-//MAIN
 type config struct {
 	baseURL   string
 	httpPort  int

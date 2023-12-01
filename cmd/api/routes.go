@@ -22,5 +22,15 @@ func (app *application) routes() http.Handler {
 		mux.Get("/basic-auth-protected", app.protected)
 	})
 
+	mux.Get("/books", app.getBooks)
+
+	mux.Get("/books/{isbn}", app.getBookByIsbn)
+
+	mux.Get("/books/{id}", app.getBookById)
+
+	// Actions for Librarians
+	mux.Post("/books", app.addBook)
+
+	mux.Delete("/books/{id}", app.removeBook)
 	return mux
 }
